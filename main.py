@@ -32,7 +32,7 @@ from Crypto.Signature import pkcs1_15
 class Setup:
     def __init__(self):
         # chain request
-        chain_response = requests.get(f'http://127.0.0.1:5000/chain')
+        chain_response = requests.get(f'http://192.168.0.250:5000/chain')
         if chain_response.status_code == 200:
             chain = chain_response.json()['chain']
 
@@ -280,22 +280,9 @@ class BalanceScreen(Screen):
         layout.add_widget(buttons_layout)
 
         self.add_widget(layout)
-
-        # schedule the update_balance function to run every 30 seconds
-        Clock.schedule_interval(self.update_balance, 30)
-        Clock.schedule_interval(self.update_history, 30)
-
-    def on_enter(self, *args):
-        # schedule the update_balance function to run every 30 seconds
         self.balance_update = Clock.schedule_interval(self.update_balance, 60)
         self.transaction_update = Clock.schedule_interval(self.update_history, 60)
 
-    def on_leave(self, *args):
-        if self.balance_update:
-            self.balance_update.cancel()
-
-        if self.transaction_update:
-            self.transaction_update.cancel()
 
     def update_history(self, dt):
         print("updating history")
@@ -332,7 +319,7 @@ class BalanceScreen(Screen):
         print("updating balance")
         address = json.load(open('data/wallet.json', 'r'))['public key hash']
         # chain request
-        chain_response = requests.get(f'http://127.0.0.1:5000/chain')
+        chain_response = requests.get(f'http://192.168.0.250:5000/chain')
         if chain_response.status_code == 200:
             chain = chain_response.json()['chain']
 
@@ -351,6 +338,7 @@ class BalanceScreen(Screen):
                     f.write(string)
                     f.write('\n')
 
+        self.chain = []  # initialize self.chain to an empty list
         s = open('data/chain.json', 'r')
         for line in s.readlines():
             try:
@@ -489,7 +477,7 @@ class SendScreen(Screen):
 
 
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        response = requests.post(f'http://127.0.0.1:5000/transactions/new', json=full_transaction, headers=headers)
+        response = requests.post(f'http://192.168.0.250:5000/transactions/new', json=full_transaction, headers=headers)
         if response.status_code == 201:
             print(f"Sending {amount} to {recipient}")
 
@@ -520,7 +508,7 @@ class SendScreen(Screen):
         return hashlib.sha256(data_string).hexdigest()
 
     def get_last_block_hash(self):
-        response = requests.get(f'http://127.0.0.1:5000/chain')
+        response = requests.get(f'http://192.168.0.250:5000/chain')
 
         if response.status_code == 200:
             length = response.json()['length']
@@ -570,7 +558,7 @@ class ConfirmationScreen(Screen):
 
     def confirm_transaction(self, instance):
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        response = requests.post(f'http://127.0.0.1:5000/transactions/new', json=self.transaction_data, headers=headers)
+        response = requests.post(f'http://192.168.0.250:5000/transactions/new', json=self.transaction_data, headers=headers)
         if response.status_code == 201:
             print(f"Sending {self.transaction_data['amount']} to {self.transaction_data['recipient']}")
         self.manager.current = 'balance'

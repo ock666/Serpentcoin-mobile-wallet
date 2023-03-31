@@ -15,13 +15,10 @@ class Funds:
         returns a balance if greater than 0
         returns False otherwise.
         """
-        inputs = []
-        outputs = []
-        iteration_count = 0
+        total_outputs = 0
+        total_inputs = 0
 
         for block in chain:
-
-            iteration_count += 1
             transactions = block['transactions']
             for transaction in transactions:
                 recipient = transaction['recipient']
@@ -29,25 +26,19 @@ class Funds:
 
                 if recipient == address:
                     amount = transaction['amount']
-                    outputs.append(amount)
+                    total_outputs += amount
 
                 if sender == address:
                     amount = transaction['amount']
                     fee = transaction['fee']
-                    inputs.append(amount)
-                    inputs.append(fee)
-
-        total_outputs = sum(outputs)
-        total_inputs = sum(inputs)
+                    total_inputs += (amount + fee)
 
         balance = total_outputs - total_inputs
 
-
         if balance > 0:
             return balance
-
-        elif balance <= 0:
-            return balance
+        else:
+            return 0
 
 
 class Signature:
